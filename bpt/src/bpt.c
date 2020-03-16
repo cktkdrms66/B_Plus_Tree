@@ -978,6 +978,107 @@ int get_neighbor_index(pagenum_t nNum, page_t* n)
 
 
 //프린트
+
+Queue make_new_queue() {
+	Queue q = (Queue)malloc(sizeof(struct Node));
+	q->next = NULL;
+	return q;
+}
+int is_empty(Queue queue) {
+	return queue->next == NULL;
+}
+void enqueue(pagenum_t new_pagenum, Queue queue) {
+	Queue c = queue;
+	Queue end_c = (Queue)malloc(sizeof(struct Node));
+	while (c->next != NULL) {
+		c = c->next;
+	}
+	end_c->id = new_pagenum;
+	end_c->next = NULL;
+	c->next = end_c;
+}
+/* Helper function for printing the
+* tree out.  See print_tree.
+*/
+pagenum_t dequeue(Queue queue) {
+	Queue temp = queue->next;
+	pagenum_t ret = temp->id;
+	queue->next = temp->next;
+	free(temp);
+	temp = NULL;
+	return ret;
+}
+
+int path_to_root(pagenum_t child) {
+	int length = 0;
+
+	file_read_page(0, headerPage); 
+	pagenum_t root_page = headerPage->headerPage.rootPageNum;
+	page_t* page = (page_t*)malloc(sizeof(page_t));
+	file_read_page(child, page);
+	pagenum_t parent_page = page->nodePage.parentPageNum;
+	if (!parent_page) {
+		free(page);
+		return 0;
+	}
+	while (parent_page != root_page) {
+		file_read_page(parent_page, page);
+		parent_page = page->nodePage.parentPageNum;
+		length++;
+	}
+	free(page);
+	return length + 1;
+
+}
+void print_tree() {
+	file_read_page(0, headerPage);
+	pagenum_t root = headerPage->headerPage.rootPageNum;
+	page_t* temp_p1 = (page_t*)malloc(sizeof(page_t));
+	page_t* temp_pp = (page_t*)malloc(sizeof(page_t));
+	int i = 0;
+	int rank = 0;
+	int new_rank = 0;
+
+	if (headerPage->headerPage.rootPageNum == 0) {
+		printf("Empty tree.\n");
+		return;
+	}
+	Queue q = make_new_queue();
+	enqueue(root, q);
+	rank = path_to_root(root);
+	while (!is_empty(q)) {
+		pagenum_t n = dequeue(q);
+		file_read_page(n, temp_p1);
+		//file_read_page(temp_p1->link, temp_pp);
+
+		//if (temp_p1->link != 0 && n == temp_pp->right) {
+		new_rank = path_to_root(n);
+		if (new_rank != rank) {
+			rank = new_rank;
+			printf("\n");
+		}
+		//}
+		if (temp_p1->nodePage.isLeaf == 0) {
+			enqueue(temp_p1->nodePage.rightPageNum, q);
+		}
+		//if (!temp_p1->leaf)
+		for (i = 0; i < temp_p1->nodePage.NumOfKey; i++)
+			if (temp_p1->nodePage.isLeaf == 0) {
+				printf("%ld ", temp_p1->nodePage.pageArr[i].key);
+				enqueue(temp_p1->nodePage.pageArr[i].pageNumber, q);
+			}
+			else {
+				printf("%ld ", temp_p1->nodePage.recordArr[i].key);
+			}
+	
+			printf("| ");
+
+	}
+	//print_leaves();
+	free(temp_p1);
+	free(temp_pp);
+	printf("\n");
+}
 void print_page(pagenum_t pageNum)
 {
 	if(pageNum >= headerPage->headerPage.numOfPage) return;

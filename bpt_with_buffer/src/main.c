@@ -1,11 +1,8 @@
 #include "bpt.h"
-#define INPUT 10000
-#define PAGENUM 10000
-#include <time.h>
+
 
 int main() {
 	
-	srand(time(NULL));
 	int random;
 	int who;
 	int num;

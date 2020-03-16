@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#define DEFAULT_ORDER 32
-#define BRANCH_ORDER 249
+#define DEFAULT_ORDER 4
+#define BRANCH_ORDER 4
 #define BUFFSIZE 4096
 #define HEADER_RESERVED (BUFFSIZE - 24)
 #define FREE_RESERVED (BUFFSIZE - 8)
@@ -62,8 +62,17 @@ typedef struct NodePage
 	};
 
 } NodePage;
-
-
+typedef struct Node* PtrToNode;
+typedef PtrToNode Queue;
+struct Node {
+	pagenum_t id;
+	Queue next;
+};
+void enqueue(pagenum_t, Queue);
+pagenum_t dequeue(Queue);
+int path_to_root(pagenum_t);
+void print_leaves();
+void print_tree();
 //페이지 구조체
 typedef struct page_t
 {
